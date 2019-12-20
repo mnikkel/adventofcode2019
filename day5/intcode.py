@@ -73,12 +73,11 @@ def process_parameters(modes, chunk):
 
 def retrieve_parameters(parameters, exe):
     values = []
-    for p in parameters[:-1]:
+    for p in parameters:
         if p[0] == 0:
-            values.append(exe[p[1]])
+            values.append((p[1], exe[p[1]]))
         else:
-            values.append(p[1])
-    values.append(parameters[-1][1])
+            values.append((p[1], p[1]))
     return values
 
 
@@ -86,17 +85,20 @@ def run_code(exe, input=0):
     i = 0
     while i < len(exe):
         op, modes = process_op(exe[i])
-        if op in [1, 2]:
+        if op in [1, 2, 7, 8]:
             parameters = process_parameters(modes, exe[i + 1:i + 4])
         elif op in [3, 4]:
             parameters = process_parameters(modes, exe[i + 1:i + 2])
+        elif op in [5, 6]:
+            parameters = process_parameters(modes, exe[i + 1:i + 3])
+
         if op == 1:
             a, b, c = retrieve_parameters(parameters, exe)
-            exe[c] = a + b
+            exe[c[0]] = a[1] + b[1]
             i += 4
         elif op == 2:
             a, b, c = retrieve_parameters(parameters, exe)
-            exe[c] = a * b
+            exe[c[0]] = a[1] * b[1]
             i += 4
         elif op == 3:
             exe[parameters[0][1]] = input
@@ -104,6 +106,32 @@ def run_code(exe, input=0):
         elif op == 4:
             print(exe[parameters[0][1]])
             i += 2
+        elif op == 5:
+            a, b = retrieve_parameters(parameters, exe)
+            if a[1]:
+                i = b[1]
+            else:
+                i += 3
+        elif op == 6:
+            a, b = retrieve_parameters(parameters, exe)
+            if not a[1]:
+                i = b[1]
+            else:
+                i += 3
+        elif op == 7:
+            a, b, c = retrieve_parameters(parameters, exe)
+            if a[1] < b[1]:
+                exe[c[0]] = 1
+            else:
+                exe[c[0]] = 0
+            i += 4
+        elif op == 8:
+            a, b, c = retrieve_parameters(parameters, exe)
+            if a[1] == b[1]:
+                exe[c[0]] = 1
+            else:
+                exe[c[0]] = 0
+            i += 4
         elif op == 99:
             return exe[0]
 
@@ -123,6 +151,7 @@ def part2(code):
                 return 100 * noun + verb
 
 
-print(part1(DAY2.copy()))
-print(part2(DAY2.copy()))
+#  print(part1(DAY2.copy()))
+#  print(part2(DAY2.copy()))
 run_code(CODE.copy(), 1)
+run_code(CODE.copy(), 5)
